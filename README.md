@@ -21,6 +21,10 @@ Most chat demos either rely on a Node + React + Postgres + Redis stack just to s
 
 If you want to learn how a chat system works under the hood, or you need a private, self-hostable channel for a small group, this is for you.
 
+
+<a href="https://www.buymeacoffee.com/rawfilejson" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+
 ## Features
 
 - 🔐 **Encrypted rooms** — set a password, messages are encrypted with **Fernet** (AES-128-CBC + HMAC-SHA256), keys derived via **PBKDF2-SHA256** (200k iterations). Without the password, the database is unreadable.
@@ -161,8 +165,10 @@ If you want to run this on a public box:
 
 PRs welcome.
 
+<a href="https://www.buymeacoffee.com/rawfilejson" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## License
 
 MIT — do whatever you want, just don't sue me.
 
-Built by [@rawfilejson](https://github.com/rawfilejson) in Lisbon.
+Built by [@rawfilejson](https://github.com/rawfilejson).
