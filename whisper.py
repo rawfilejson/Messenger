@@ -28,8 +28,8 @@ RATE_LIMIT    = 5            # max messages per RATE_WINDOW
 MAX_MSG_LEN   = 800
 DEFAULT_ROOM  = "lobby"
 
-# Change this in production. Same salt + same password = same key, so if you
-# rotate the salt nobody can read old encrypted history. Trade-off.
+# Change this in production
+# Same salt + same password = same key, so if you rotate the salt nobody can read old encrypted history
 APP_SALT = b"whisper-v1-change-me-in-prod"
 
 
@@ -46,7 +46,6 @@ PALETTE = [
 
 # Crypto
 def derive_key(password: str) -> bytes:
-    """PBKDF2-SHA256 -> 32 bytes -> urlsafe b64 (Fernet format)."""
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -126,7 +125,6 @@ def esc(s):
 
 
 def render(box, sender, body, kind="msg"):
-    """Push a single line into a chat box. kind: msg | system | dm | me"""
     ts = now_hm()
     if kind == "system":
         box.append(put_html(
@@ -159,7 +157,6 @@ def render(box, sender, body, kind="msg"):
 
 
 def rate_hit(nick):
-    """Returns True if the user just got rate-limited."""
     now = time.time()
     log = rate_log[nick]
     while log and now - log[0] > RATE_WINDOW:
@@ -182,7 +179,6 @@ def get_or_make_room(name, password):
 
 
 def post(room_name, sender, body, *, kind="msg", target=None):
-    """Append a message to a room's in-memory log + persist if real chat."""
     room = rooms[room_name]
     stored = encrypt(body, room["key"]) if kind == "msg" and room["key"] else body
     room["msgs"].append({
@@ -205,7 +201,6 @@ HELP_TEXT = (
 
 
 def handle_command(text, *, nick, room_name, box):
-    """Returns True if the command was handled (skip normal send)."""
     parts = text.strip().split(" ", 2)
     cmd = parts[0].lower()
     args = parts[1:]
@@ -243,8 +238,7 @@ def handle_command(text, *, nick, room_name, box):
         if not any(target in r["users"] for r in rooms.values()):
             render(box, None, f"user '{target}' is not online", kind="system")
             return True
-        # we route DMs through the sender's current room - both sides will see it
-        # via the refresh loop's target check below
+        # we route DMs through the sender's current room - both sides will see it via the refresh loop's target check below
         post(room_name, nick, body, kind="dm", target=target)
         render(box, f"you → {target}", body, kind="dm")
 
@@ -280,7 +274,6 @@ def handle_command(text, *, nick, room_name, box):
 
 # background tasks per session
 async def refresh_messages(nick, room_name, box):
-    """Poll the room log and render anything new that's relevant to us."""
     room = rooms[room_name]
     last = len(room["msgs"])
     while True:
@@ -300,7 +293,6 @@ async def refresh_messages(nick, room_name, box):
 
 
 async def refresh_sidebar(sidebar, room_name):
-    """Re-render the user list when it changes. Cheap signature check."""
     last_sig = None
     while True:
         await asyncio.sleep(1.5)
@@ -337,15 +329,9 @@ async def main():
     set_env(title="Whisper", output_max_width="980px")
 
     put_html("""
-    <div style="text-align:center;padding:8px 0 14px;
-                font-family:system-ui,sans-serif;">
-      <div style="font-size:28px;font-weight:700;letter-spacing:-0.5px;">
-        🤫 Whisper
-      </div>
-      <div style="opacity:.65;font-size:13px;">
-        encrypted chat in a single Python file ·
-        type <code>/help</code> once you're in
-      </div>
+    <div style="text-align:center;padding:8px 0 14px;font-family:system-ui,sans-serif;">
+      <div style="font-size:28px;font-weight:700;letter-spacing:-0.5px;">Whisper</div>
+      <div style="opacity:.65;font-size:13px;">encrypted chat in a single Python file · type <code>/help</code> once you're in</div>
     </div>
     """)
 
@@ -370,11 +356,10 @@ async def main():
             put_html('<div style="color:#e74c3c;padding:12px;">'
                      'wrong password for this room.</div>')
             return
-    # and if the room exists as public, refuse a password attempt (don't let
-    # people accidentally split-brain a room)
+    # and if the room exists as public, refuse a password attempt (don't let people accidentally split-brain a room)
     if room_name in rooms and not rooms[room_name]["private"] and password:
         put_html('<div style="color:#e67e22;padding:12px;">'
-                 'that room is public - leave password blank.</div>')
+                 'that room is public - leave password blank</div>')
         return
 
     room = get_or_make_room(room_name, password or None)
@@ -414,7 +399,7 @@ async def main():
     # chat loop
     while True:
         data = await input_group("", [
-            input(placeholder="message... or /help", name="msg"),
+            input(placeholder="message or /help", name="msg"),
             actions(name="act", buttons=[
                 {"label": "send",  "value": "send"},
                 {"label": "leave", "value": "leave", "type": "cancel"},
@@ -431,7 +416,7 @@ async def main():
             toast(f"too long (max {MAX_MSG_LEN} chars)", color="warn")
             continue
         if rate_hit(nick):
-            toast("slow down 🐢", color="warn")
+            toast("slow down", color="warn")
             continue
 
         # slash commands
@@ -452,7 +437,6 @@ async def main():
 
 
 def _all_users():
-    """Flat set of every nick currently in any room."""
     out = set()
     for r in rooms.values():
         out |= r["users"]
@@ -460,7 +444,7 @@ def _all_users():
 
 
 if __name__ == "__main__":
-    # cdn=False so it works offline / on a closed network.
-    # debug=True is fine for a hobby project; turn it off for real deployments.
-    print("Whisper running -> http://localhost:8080")
+    # cdn=False so it works offline / on a closed network
+    # debug=True is fine for a hobby project; turn it off for real deployments
+    print("Whisper running http://localhost:8080")
     start_server(main, debug=True, port=8080, cdn=False)
